@@ -196,13 +196,18 @@ export const useNotifications = (): UseNotificationsReturn => {
     }
 
     try {
-      // Get the user first
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // Get the session first (more reliable than getUser for checking auth state)
+      const { data: { session } } = await supabase.auth.getSession();
+      let user = session?.user;
+      
       if (!user) {
-        toast.error("You must be logged in to enable push notifications");
-        return false;
+        // Try refreshing the session once before giving up
+        const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+        user = refreshedSession?.user ?? null;
+        if (!user) {
+          toast.error("You must be logged in to enable push notifications");
+          return false;
+        }
       }
 
       // Wait for service worker to be ready
