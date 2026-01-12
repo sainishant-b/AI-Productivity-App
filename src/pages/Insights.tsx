@@ -338,12 +338,12 @@ const Insights = () => {
             <div className="sm:hidden">
               <div className="w-full">
                 {/* Day labels header */}
-                <div className="flex gap-[3px] mb-2">
-                  <div className="w-8 shrink-0" />
+                <div className="grid grid-cols-[32px_repeat(7,1fr)] gap-1 mb-2">
+                  <div />
                   {dayLabels.map((day, i) => (
                     <div
                       key={i}
-                      className="flex-1 text-[9px] text-muted-foreground text-center"
+                      className="text-[10px] text-muted-foreground text-center"
                     >
                       {day.slice(0, 1)}
                     </div>
@@ -351,7 +351,7 @@ const Insights = () => {
                 </div>
 
                 {/* Weeks as rows */}
-                <div className="flex flex-col gap-[3px]">
+                <div className="flex flex-col gap-1">
                   {weeks.map((week, weekIndex) => {
                     // Get month label for first day of week
                     const firstDayWithDate = week.find(d => d.date);
@@ -361,16 +361,16 @@ const Insights = () => {
                         getMonth(new Date(firstDayWithDate.date)) !== getMonth(new Date(weeks[weekIndex - 1].find(d => d.date)!.date))));
                     
                     return (
-                      <div key={weekIndex} className="flex gap-[3px] items-center">
+                      <div key={weekIndex} className="grid grid-cols-[32px_repeat(7,1fr)] gap-1 items-center">
                         {/* Month label */}
-                        <div className="w-8 text-[9px] text-muted-foreground shrink-0">
+                        <div className="text-[10px] text-muted-foreground">
                           {showMonth && firstDayWithDate ? format(new Date(firstDayWithDate.date), "MMM") : ""}
                         </div>
                         {/* Days */}
                         {week.map((day, dayIndex) => (
                           <div
                             key={`${weekIndex}-${dayIndex}`}
-                            className={`flex-1 aspect-square max-w-[12px] rounded-[2px] transition-all duration-200 ${
+                            className={`aspect-square w-full rounded-sm transition-all duration-200 ${
                               day.count === -1 ? "bg-transparent" : getHeatmapColor(day.count)
                             }`}
                             title={day.date ? `${day.date}: ${day.count} task${day.count !== 1 ? "s" : ""}` : ""}
@@ -382,10 +382,10 @@ const Insights = () => {
                 </div>
                 
                 {/* Legend */}
-                <div className="flex items-center justify-end gap-1.5 mt-3 text-[10px] text-muted-foreground">
+                <div className="flex items-center justify-end gap-2 mt-4 text-[10px] text-muted-foreground">
                   <span>No tasks</span>
-                  <div className="w-[10px] h-[10px] rounded-[2px] bg-muted/30" />
-                  <div className="w-[10px] h-[10px] rounded-[2px] bg-white dark:bg-white" />
+                  <div className="w-3 h-3 rounded-sm bg-muted/30" />
+                  <div className="w-3 h-3 rounded-sm bg-white dark:bg-white" />
                   <span>Completed</span>
                 </div>
               </div>
