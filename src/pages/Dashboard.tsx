@@ -14,6 +14,7 @@ import AIRecommendations from "@/components/AIRecommendations";
 import NotificationPrompt from "@/components/NotificationPrompt";
 import StatsSidebar from "@/components/StatsSidebar";
 import MobileStatsBar from "@/components/MobileStatsBar";
+import ProofUploadDialog from "@/components/ProofUploadDialog";
 import { useCheckInScheduler } from "@/hooks/useCheckInScheduler";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useTaskReminders } from "@/hooks/useTaskReminders";
@@ -34,6 +35,10 @@ const Dashboard = () => {
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(true);
+  const [showProofDialog, setShowProofDialog] = useState(false);
+  const [proofTask, setProofTask] = useState<any>(null);
+  const [verificationAvg, setVerificationAvg] = useState(0);
+  const [verificationCount, setVerificationCount] = useState(0);
   const {
     permission
   } = useNotifications();
@@ -145,6 +150,8 @@ const Dashboard = () => {
       data
     } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     setProfile(data);
+    setVerificationAvg(data?.ai_verification_avg || 0);
+    setVerificationCount(data?.ai_verification_count || 0);
   };
   const handleSaveTask = async (taskData: any) => {
     const isNewTask = !selectedTask;
@@ -194,6 +201,10 @@ const Dashboard = () => {
           } else {
             toast.success("Completed for today!");
           }
+          if (task.requires_proof) {
+            setProofTask(task);
+            setShowProofDialog(true);
+          }
           handleTaskCompleted(taskId);
           invalidateRecommendations();
         } else {
@@ -224,7 +235,14 @@ const Dashboard = () => {
       toast.error("Failed to update task");
     } else {
       if (newStatus === "completed") {
-        toast.success("Task completed");
+        const completedTask = tasks.find(t => t.id === taskId);
+        if (completedTask?.requires_proof) {
+          setProofTask(completedTask);
+          setShowProofDialog(true);
+          toast.success("Task completed! Upload your proof photo.");
+        } else {
+          toast.success("Task completed!");
+        }
         handleTaskCompleted(taskId);
         invalidateRecommendations();
       }
@@ -331,7 +349,7 @@ const Dashboard = () => {
         {/* Sticky sidebar - tablet and desktop only (not on native) */}
         {!isMobile && (
           <div className="p-4 lg:p-6 shrink-0">
-            <StatsSidebar streak={profile?.current_streak || 0} completedCount={completedCount} nextCheckIn={formatNextCheckIn()} isWorkHours={isWorkHours} />
+            <StatsSidebar streak={profile?.current_streak || 0} completedCount={completedCount} nextCheckIn={formatNextCheckIn()} isWorkHours={isWorkHours} verificationAvg={verificationAvg} verificationCount={verificationCount} />
           </div>
         )}
 
@@ -405,6 +423,15 @@ const Dashboard = () => {
     }} onSave={handleSaveTask} task={selectedTask} />
 
       <CheckInModal open={showCheckIn} onClose={() => setShowCheckIn(false)} question={checkInQuestions[Math.floor(Math.random() * checkInQuestions.length)]} onSubmit={handleCheckInSubmit} />
+
+      {showProofDialog && proofTask && (
+        <ProofUploadDialog
+          open={showProofDialog}
+          onClose={() => { setShowProofDialog(false); setProofTask(null); }}
+          task={proofTask}
+          onVerified={() => fetchProfile()}
+        />
+      )}
     </div>;
 };
 export default Dashboard;

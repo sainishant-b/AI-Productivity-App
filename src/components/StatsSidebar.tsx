@@ -1,14 +1,17 @@
 import { Flame, CheckCircle2, Clock } from "lucide-react";
 import CountUpNumber from "@/components/CountUpNumber";
+import { VerificationScoreCard } from "@/components/VerificationBadge";
 
 interface StatsSidebarProps {
   streak: number;
   completedCount: number;
   nextCheckIn: string;
   isWorkHours: boolean;
+  verificationAvg?: number;
+  verificationCount?: number;
 }
 
-const StatsSidebar = ({ streak, completedCount, nextCheckIn, isWorkHours }: StatsSidebarProps) => {
+const StatsSidebar = ({ streak, completedCount, nextCheckIn, isWorkHours, verificationAvg = 0, verificationCount = 0 }: StatsSidebarProps) => {
   return (
     <aside className="hidden lg:flex flex-col gap-3 w-[220px] shrink-0 sticky top-20 h-fit">
       {/* Streak */}
@@ -36,6 +39,9 @@ const StatsSidebar = ({ streak, completedCount, nextCheckIn, isWorkHours }: Stat
           <div className="text-xs text-muted-foreground">completed</div>
         </div>
       </div>
+
+      {/* AI Verification Score */}
+      <VerificationScoreCard avg={verificationAvg} count={verificationCount} />
 
       {/* Next Check-in */}
       <div className="flex items-center gap-3 p-4 rounded-xl bg-card border border-border/50 shadow-sm">

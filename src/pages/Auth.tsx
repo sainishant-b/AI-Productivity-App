@@ -25,7 +25,7 @@ const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${globalThis.location.origin}/`,
           data: {
             name,
           },
@@ -36,8 +36,9 @@ const Auth = () => {
 
       toast.success("Account created! Welcome aboard! 🎉");
       navigate("/");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create account");
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Failed to create account";
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
@@ -57,8 +58,9 @@ const Auth = () => {
 
       toast.success("Welcome back! 👋");
       navigate("/");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to sign in");
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Failed to sign in";
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

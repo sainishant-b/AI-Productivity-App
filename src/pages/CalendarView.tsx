@@ -6,17 +6,57 @@ import TaskDialog from "@/components/TaskDialog";
 import { Button } from "@/components/ui/button";
 import { Calendar, List, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { CalendarAIPanel } from "@/components/CalendarAIPanel";
+import { ScheduleProposalSheet } from "@/components/ScheduleProposalSheet";
+import { useCalendarAI } from "@/hooks/useCalendarAI";
+
+interface Task {
+  id: string;
+  title: string;
+  due_date: string | null;
+  priority: string;
+  status: string;
+  category: string;
+  [key: string]: unknown;
+}
 
 export default function CalendarView() {
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [loading, setLoading] = useState(true);
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showProposals, setShowProposals] = useState(false);
+  const {
+    requestSchedule,
+    toggleProposal,
+    applyApprovedProposals,
+    dismissProposals,
+    proposals,
+    overallReasoning,
+    conflicts,
+    isLoading: isAILoading,
+    hasProposals,
+  } = useCalendarAI();
+
+  // Auto-show proposals when they arrive
+  useEffect(() => {
+    if (hasProposals) setShowProposals(true);
+  }, [hasProposals]);
+
+  const handleUpdateTask = async (taskId: string, updates: Record<string, unknown>) => {
+    const { error } = await supabase
+      .from("tasks")
+      .update(updates)
+      .eq("id", taskId);
+    if (error) throw error;
+    await fetchTasks();
+  };
 
   useEffect(() => {
     fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchTasks = async () => {
@@ -52,7 +92,7 @@ export default function CalendarView() {
     setIsTaskDialogOpen(true);
   };
 
-  const handleSaveTask = async (taskData: any) => {
+  const handleSaveTask = async (taskData: Partial<Task>) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -61,7 +101,7 @@ export default function CalendarView() {
         ...taskData,
         user_id: user.id,
         due_date: selectedDate?.toISOString(),
-      };
+      } as { priority: string; title: string; user_id: string; due_date?: string };
 
       const { error } = await supabase.from("tasks").insert([newTask]);
 
@@ -103,6 +143,12 @@ export default function CalendarView() {
             </div>
             
             <div className="flex gap-2">
+              <CalendarAIPanel
+                onRequest={requestSchedule}
+                isLoading={isAILoading}
+                hasProposals={hasProposals}
+                onShowProposals={() => setShowProposals(true)}
+              />
               <Button
                 variant={viewMode === "month" ? "default" : "ghost"}
                 size="sm"
@@ -142,6 +188,18 @@ export default function CalendarView() {
           setSelectedDate(null);
         }}
         onSave={handleSaveTask}
+      />
+
+      {/* AI Schedule Proposals */}
+      <ScheduleProposalSheet
+        open={showProposals}
+        onOpenChange={setShowProposals}
+        proposals={proposals}
+        overallReasoning={overallReasoning}
+        conflicts={conflicts}
+        onToggle={toggleProposal}
+        onApprove={() => applyApprovedProposals(handleUpdateTask)}
+        onDismiss={() => { dismissProposals(); setShowProposals(false); }}
       />
     </div>
   );

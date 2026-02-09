@@ -125,6 +125,7 @@ const CompactTaskCard = ({ task, onToggleComplete, onClick }: CompactTaskCardPro
       >
         {task.priority}
       </Badge>
+
     </div>
   );
 

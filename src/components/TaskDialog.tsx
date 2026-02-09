@@ -18,11 +18,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Minus, Plus, X, ChevronDown, Bell, Repeat } from "lucide-react";
+import { Minus, Plus, X, ChevronDown, Bell, Repeat, Camera } from "lucide-react";
 import { NotificationSchedulePreview } from "./NotificationSchedulePreview";
 import { useBackButton } from "@/hooks/useBackButton";
 import { RepeatConfigSheet, RepeatConfig } from "./RepeatConfigSheet";
 import { formatRepeatDescription } from "@/utils/repeatTaskUtils";
+import { Switch } from "@/components/ui/switch";
 
 interface Task {
   id?: string;
@@ -42,6 +43,7 @@ interface Task {
   repeat_end_type?: "never" | "on_date" | "after_count";
   repeat_end_date?: string | null;
   repeat_end_count?: number | null;
+  requires_proof?: boolean;
 }
 
 interface TaskDialogProps {
@@ -63,6 +65,7 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
     category: "other",
     progress: 0,
     repeat_enabled: false,
+    requires_proof: false,
   });
   const [showNotificationPreview, setShowNotificationPreview] = useState(false);
   const [showRepeatConfig, setShowRepeatConfig] = useState(false);
@@ -93,6 +96,7 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
         category: "other",
         progress: 0,
         repeat_enabled: false,
+        requires_proof: false,
       });
     }
   }, [task, open]);
@@ -307,6 +311,24 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
                 Add repeat schedule
               </Button>
             )}
+          </div>
+
+          {/* Requires Photo Proof */}
+          <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+            <div className="flex items-center gap-2">
+              <Camera className="h-4 w-4 text-purple-400" />
+              <div>
+                <Label htmlFor="requires-proof" className="text-sm font-medium cursor-pointer">
+                  Requires photo proof
+                </Label>
+                <p className="text-xs text-muted-foreground">AI will verify your work when completed</p>
+              </div>
+            </div>
+            <Switch
+              id="requires-proof"
+              checked={formData.requires_proof || false}
+              onCheckedChange={(checked) => setFormData({ ...formData, requires_proof: checked })}
+            />
           </div>
 
           {/* Notification Schedule Preview */}
